@@ -1,0 +1,30 @@
+package handler
+
+import (
+    "encoding/json"
+    "net/http"
+    "strconv"
+)
+
+func (handler *{{.TypeName}}Handler) Get{{.TypeName}}(writer http.ResponseWriter, request *http.Request) error {
+    userId, err := strconv.Atoi(request.URL.Query().Get("id"))
+
+    if err != nil {
+        return err
+    }
+
+    result, err := handler.{{.UseCaseName}}.Find{{.TypeName}}(uint64(userId))
+
+    if err != nil {
+		return err
+	}
+
+	data, err := json.Marshal(result)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = writer.Write(data)
+	return err
+}
