@@ -12,6 +12,7 @@ func Start() {
 		Usage: "Generate on-demand scaffolding following the ports & adapters architecture",
 		Commands: []*cli.Command{
 			typeCommand(),
+			initCommand(),
 		},
 	}
 

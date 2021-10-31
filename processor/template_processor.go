@@ -67,7 +67,7 @@ func (processor *TemplateProcessor) initTemplates() {
 	processor.fileContentTemplate = fileContentTemplate
 }
 
-func (processor *TemplateProcessor) processFile(rootDir, filename string) {
+func (processor *TemplateProcessor) processFile(rootDir, targetPath, filename string) {
 	templateFileContent, err := templateResources.ReadFile(filename)
 	util.PanicIfError(err)
 
@@ -84,14 +84,13 @@ func (processor *TemplateProcessor) processFile(rootDir, filename string) {
 	targetFilename := strings.Replace(
 		filenameBuffer.String(),
 		rootDir,
-		path.Join(processor.config.TargetPath, strcase.ToSnake(processor.config.TypeName)),
+		targetPath,
 		1,
 	)
 	targetFilename = strings.Replace(targetFilename, "gotpl", "go", 1)
 
 	// Create directory
 	dirname := path.Dir(targetFilename)
-
 	util.PanicIfError(os.MkdirAll(dirname, os.ModePerm))
 
 	// Create file
@@ -102,15 +101,24 @@ func (processor *TemplateProcessor) processFile(rootDir, filename string) {
 	util.PanicIfError(contentTpl.Execute(file, processor.config))
 }
 
-func (processor *TemplateProcessor) processFiles(suffixDir string) {
-	rootDir := path.Join(templateRootDirname, suffixDir)
+func (processor *TemplateProcessor) processFiles(templateName, targetPath string) {
+	rootDir := path.Join(templateRootDirname, templateName)
 	filenames := collectTemplateFilenames(rootDir)
 
 	for _, filename := range filenames {
-		processor.processFile(rootDir, filename)
+		processor.processFile(rootDir, targetPath, filename)
 	}
 }
 
+func (processor *TemplateProcessor) ProcessInit() {
+	workingDirectory, err := os.Getwd()
+	util.PanicIfError(err)
+
+	processor.processFiles("init", workingDirectory)
+}
+
 func (processor *TemplateProcessor) ProcessByType() {
-	processor.processFiles("type")
+	targetPath := path.Join(processor.config.TypesPath, strcase.ToSnake(processor.config.TypeName))
+
+	processor.processFiles("type", targetPath)
 }

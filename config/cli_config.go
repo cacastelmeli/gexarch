@@ -10,7 +10,7 @@ import (
 const CONFIG_FILENAME = "gexarch.yml"
 
 type CliConfig struct {
-	TargetPath string `yaml:"target_path"`
+	TypesPath string `yaml:"types_path"`
 }
 
 func GetCliConfig() *CliConfig {

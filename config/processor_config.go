@@ -23,7 +23,7 @@ func GetProcessorConfigByType(Type string) *ProcessorConfig {
 
 	return &ProcessorConfig{
 		CliConfig:      cliConfig,
-		ModulePath:     path.Join(modFile.Module.Mod.Path, cliConfig.TargetPath),
+		ModulePath:     path.Join(modFile.Module.Mod.Path, cliConfig.TypesPath),
 		TypeName:       Type,
 		UseCaseName:    fmt.Sprintf("%sFinder", Type),
 		RepositoryName: fmt.Sprintf("%sRepository", Type),
