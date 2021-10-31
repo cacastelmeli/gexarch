@@ -4,6 +4,8 @@ import (
     "encoding/json"
     "net/http"
     "strconv"
+
+    "github.com/mercadolibre/fury_go-core/pkg/web"
 )
 
 func (handler *{{.TypeName}}Handler) Get{{.TypeName}}(writer http.ResponseWriter, request *http.Request) error {
@@ -19,12 +21,5 @@ func (handler *{{.TypeName}}Handler) Get{{.TypeName}}(writer http.ResponseWriter
 		return err
 	}
 
-	data, err := json.Marshal(result)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = writer.Write(data)
-	return err
+	return web.RespondJSON(writer, result, http.StatusOK)
 }

@@ -1,3 +1,4 @@
 # Ignore generated files
-__mock__
+/cmd
+/pkg
 gexarch.yml

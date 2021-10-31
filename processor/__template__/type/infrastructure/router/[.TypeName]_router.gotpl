@@ -4,6 +4,7 @@ import (
     "net/http"
 
     "{{.ModulePath}}/{{.TypeName | to_snake}}/infrastructure/handler"
+    "github.com/mercadolibre/fury_go-core/pkg/web"
 )
 
 type {{.TypeName}}Router struct {
@@ -18,5 +19,5 @@ func New{{.TypeName}}Router() *{{.TypeName}}Router {
 
 // Placeholder router method
 func (router *{{.TypeName}}Router) Empty(writer http.ResponseWriter, request *http.Request) error {
-    return nil
+    return web.RespondJSON(writer, nil, http.StatusNoContent)
 }

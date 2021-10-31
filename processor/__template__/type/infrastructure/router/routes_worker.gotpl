@@ -1,5 +1,14 @@
 package router
 
-func (router *{{.TypeName}}Router) WorkerRoutes() {
-    
+import (
+    "github.com/mercadolibre/fury_asset-mgmt-core-libs/pkg/transport/httpcore"
+    "github.com/mercadolibre/fury_go-core/pkg/web"
+	"github.com/mercadolibre/fury_go-platform/pkg/fury"
+)
+
+func (router *{{.TypeName}}Router) WorkerRoutes(app *fury.Application, prefixGroup *web.RouteGroup) {
+    {{.TypeName}}V1Group := prefixGroup.Group("/v1/{{.TypeName | to_snake}}")
+
+    // Routes
+    {{.TypeName}}V1Group.Post("/empty", router.Empty, httpcore.Middle(app))
 }
