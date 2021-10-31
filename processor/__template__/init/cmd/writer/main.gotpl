@@ -1,0 +1,16 @@
+package main
+
+import (
+	"{{.ModulePath}}/cmd/app/config"
+	"{{.ModulePath}}/{{.TypesPath}}/shared/infrastructure/routers"
+)
+
+func main() {
+	conf := config.Get()
+	writerRouter := routers.GetWriterRouter(conf)
+
+	// Load web app
+	if err := writerRouter.API().Run(); err != nil {
+		panic(err.Error())
+	}
+}

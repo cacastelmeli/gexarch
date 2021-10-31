@@ -5,6 +5,7 @@ import (
 
 	"github.com/aeroxmotion/gexarch/config"
 	"github.com/aeroxmotion/gexarch/processor"
+	"github.com/aeroxmotion/gexarch/util"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,6 +29,7 @@ func initCommandAction(ctx *cli.Context) error {
 		CliConfig: &config.CliConfig{
 			TypesPath: typesPath,
 		},
+		ModulePath: util.ParseModfile().Module.Mod.Path,
 	})
 	processor.ProcessInit()
 

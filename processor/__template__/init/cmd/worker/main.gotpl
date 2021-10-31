@@ -1,0 +1,16 @@
+package main
+
+import (
+	"{{.ModulePath}}/cmd/app/config"
+	"{{.ModulePath}}/{{.TypesPath}}/shared/infrastructure/routers"
+)
+
+func main() {
+	conf := config.Get()
+	workerRouter := routers.GetWorkerRouter(conf)
+
+	// Load web app
+	if err := workerRouter.API().Run(); err != nil {
+		panic(err.Error())
+	}
+}

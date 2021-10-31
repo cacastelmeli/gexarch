@@ -1,0 +1,15 @@
+package routers
+
+import (
+	"{{.ModulePath}}/cmd/app/config"
+	"{{.ModulePath}}/{{.TypesPath}}/shared/infrastructure/rest"
+)
+
+func GetReaderRouter(config config.Config) rest.Router {
+	subRouters := []rest.SharedRouter{}
+
+	return rest.NewReaderRouter(
+		config.PathPrefix,
+		subRouters...,
+	)
+}

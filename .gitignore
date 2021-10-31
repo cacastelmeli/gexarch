@@ -1,2 +1,3 @@
-# Ignore generated mock directory
+# Ignore generated files
 __mock__
+gexarch.yml
