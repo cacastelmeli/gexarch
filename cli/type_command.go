@@ -2,11 +2,24 @@ package cli
 
 import (
 	"errors"
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"path"
 
 	"github.com/aeroxmotion/gexarch/config"
 	"github.com/aeroxmotion/gexarch/processor"
+	"github.com/aeroxmotion/gexarch/util"
 	"github.com/iancoleman/strcase"
 	"github.com/urfave/cli/v2"
+	"golang.org/x/tools/go/ast/astutil"
+)
+
+const (
+	routerExprSource   = "%sRouter.New%sRouter(conf)"
+	subRoutersFilename = "%s/shared/infrastructure/routers/sub_routers.go"
+	subRouterPath      = "%s/%s/infrastructure/router"
 )
 
 func typeCommand() *cli.Command {
@@ -27,11 +40,66 @@ func typeCommandAction(ctx *cli.Context) error {
 
 	conf := config.GetProcessorConfigByType(targetType)
 
-	tplProcessor := processor.NewTemplateProcessor(conf)
-	tplProcessor.ProcessByType()
+	processor.Process(conf, func(templateProcessor *processor.TemplateProcessor, codemodProcessor *processor.CodemodProcessor) {
+		targetPath := path.Join(conf.TypesPath, strcase.ToSnake(conf.TypeName))
+		templateProcessor.ProcessTemplate("type", targetPath)
 
-	codemodProcessor := processor.NewCodemodProcessor()
-	codemodProcessor.ProcessType(conf)
+		codemodProcessor.ProcessFile(fmt.Sprintf(subRoutersFilename, conf.TypesPath), addRouterInstance)
+	})
 
 	return nil
+}
+
+func addRouterInstance(fileSet *token.FileSet, file *ast.File, conf *config.ProcessorConfig) ast.Node {
+	// Add top-level named import
+	// Will compile into something like:
+	// import <TypeName>Router "<ModulePath>/<TypeName>/..."
+	astutil.AddNamedImport(
+		fileSet,
+		file,
+		fmt.Sprintf("%sRouter", strcase.ToLowerCamel(conf.TypeName)),
+		fmt.Sprintf(subRouterPath, conf.ModulePath, strcase.ToSnake(conf.TypeName)),
+	)
+
+	// Attach router's instance call expression
+	// to the list of registered routers:
+	//
+	// []rest.SharedRouter{
+	//     <TypeName>Router.New<TypeName>Router(conf),
+	// }
+	postTransform := func(c *astutil.Cursor) bool {
+		compositeLit, inCompositeLit := c.Parent().(*ast.CompositeLit)
+
+		if !inCompositeLit {
+			return true
+		}
+
+		arrayType, inArrayType := compositeLit.Type.(*ast.ArrayType)
+
+		if !inArrayType {
+			return true
+		}
+
+		selectorExpr, hasSelectorExpr := arrayType.Elt.(*ast.SelectorExpr)
+
+		if !hasSelectorExpr || selectorExpr.Sel.Name != "SharedRouter" {
+			return true
+		}
+
+		routerExpr, err := parser.ParseExpr(
+			fmt.Sprintf(
+				routerExprSource,
+				strcase.ToLowerCamel(conf.TypeName),
+				strcase.ToCamel(conf.TypeName),
+			),
+		)
+		util.PanicIfError(err)
+
+		compositeLit.Elts = append(compositeLit.Elts, routerExpr)
+		return false
+	}
+
+	return astutil.Apply(file, func(c *astutil.Cursor) bool {
+		return true
+	}, postTransform)
 }

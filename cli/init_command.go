@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"os"
 
 	"github.com/aeroxmotion/gexarch/config"
 	"github.com/aeroxmotion/gexarch/processor"
@@ -25,13 +26,19 @@ func initCommandAction(ctx *cli.Context) error {
 		return errors.New("missing types-path argument")
 	}
 
-	processor := processor.NewTemplateProcessor(&config.ProcessorConfig{
+	conf := &config.ProcessorConfig{
 		CliConfig: &config.CliConfig{
 			TypesPath: typesPath,
 		},
 		ModulePath: util.ParseModfile().Module.Mod.Path,
+	}
+
+	processor.Process(conf, func(templateProcessor *processor.TemplateProcessor, codemodProcessor *processor.CodemodProcessor) {
+		workingDirectory, err := os.Getwd()
+		util.PanicIfError(err)
+
+		templateProcessor.ProcessTemplate("init", workingDirectory)
 	})
-	processor.ProcessInit()
 
 	return nil
 }

@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/printer"
@@ -10,72 +9,37 @@ import (
 
 	"github.com/aeroxmotion/gexarch/config"
 	"github.com/aeroxmotion/gexarch/util"
-	"github.com/iancoleman/strcase"
-	"golang.org/x/tools/go/ast/astutil"
 )
+
+type TransformFunc func(fileSet *token.FileSet, file *ast.File, conf *config.ProcessorConfig) ast.Node
 
 type CodemodProcessor struct {
+	fileSet *token.FileSet
+	config  *config.ProcessorConfig
 }
 
-const (
-	routerExprSource   = "%sRouter.New%sRouter(conf)"
-	subRoutersFilename = "%s/shared/infrastructure/routers/sub_routers.go"
-	subRouterPath      = "%s/%s/infrastructure/router"
-)
-
-func NewCodemodProcessor() *CodemodProcessor {
-	return &CodemodProcessor{}
+func NewCodemodProcessor(conf *config.ProcessorConfig) *CodemodProcessor {
+	return &CodemodProcessor{
+		fileSet: token.NewFileSet(),
+		config:  conf,
+	}
 }
 
-func (processor *CodemodProcessor) ProcessType(conf *config.ProcessorConfig) {
-	fileSet := token.NewFileSet()
-	node, err := parser.ParseFile(fileSet, fmt.Sprintf(subRoutersFilename, conf.TypesPath), nil, parser.ParseComments)
+func (processor *CodemodProcessor) ProcessFile(filename string, transformFunc TransformFunc) {
+	// Parse given `filename` into an AST
+	// TODO: We can optimize parsing by passing a bit flag (IDK)
+	node, err := parser.ParseFile(processor.fileSet, filename, nil, parser.ParseComments)
 	util.PanicIfError(err)
 
-	astutil.AddNamedImport(
-		fileSet,
-		node,
-		fmt.Sprintf("%sRouter", strcase.ToLowerCamel(conf.TypeName)),
-		fmt.Sprintf(subRouterPath, conf.ModulePath, strcase.ToSnake(conf.TypeName)),
-	)
-
-	result := astutil.Apply(node, func(c *astutil.Cursor) bool {
-		return true
-	}, func(c *astutil.Cursor) bool {
-		compositeLit, inCompositeLit := c.Parent().(*ast.CompositeLit)
-
-		if !inCompositeLit {
-			return true
-		}
-
-		arrayType, inArrayType := compositeLit.Type.(*ast.ArrayType)
-
-		if !inArrayType {
-			return true
-		}
-
-		selectorExpr, hasSelectorExpr := arrayType.Elt.(*ast.SelectorExpr)
-
-		if !hasSelectorExpr || selectorExpr.Sel.Name != "SharedRouter" {
-			return true
-		}
-
-		routerExpr, err := parser.ParseExpr(
-			fmt.Sprintf(
-				routerExprSource,
-				strcase.ToLowerCamel(conf.TypeName),
-				strcase.ToCamel(conf.TypeName),
-			),
-		)
-		util.PanicIfError(err)
-
-		compositeLit.Elts = append(compositeLit.Elts, routerExpr)
-		return false
-	})
-
-	f, err := os.Create(fmt.Sprintf(subRoutersFilename, conf.TypesPath))
+	f, err := os.Create(filename)
 	util.PanicIfError(err)
 	defer f.Close()
 
-	util.PanicIfError(printer.Fprint(f, fileSet, result))
+	util.PanicIfError(
+		printer.Fprint(
+			f,
+			processor.fileSet,
+			transformFunc(processor.fileSet, node, processor.config),
+		),
+	)
 }

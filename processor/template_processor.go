@@ -25,12 +25,12 @@ type TemplateProcessor struct {
 	filenameTemplate    *template.Template
 }
 
-func NewTemplateProcessor(processorConfig *config.ProcessorConfig) *TemplateProcessor {
+func NewTemplateProcessor(conf *config.ProcessorConfig) *TemplateProcessor {
 	processor := &TemplateProcessor{
-		config: processorConfig,
+		config: conf,
 	}
-
 	processor.initTemplates()
+
 	return processor
 }
 
@@ -96,29 +96,17 @@ func (processor *TemplateProcessor) processFile(rootDir, targetPath, filename st
 	// Create file
 	file, err := os.Create(targetFilename)
 	util.PanicIfError(err)
+	defer file.Close()
 
 	// Generate file
 	util.PanicIfError(contentTpl.Execute(file, processor.config))
 }
 
-func (processor *TemplateProcessor) processFiles(templateName, targetPath string) {
+func (processor *TemplateProcessor) ProcessTemplate(templateName, targetPath string) {
 	rootDir := path.Join(templateRootDirname, templateName)
 	filenames := collectTemplateFilenames(rootDir)
 
 	for _, filename := range filenames {
 		processor.processFile(rootDir, targetPath, filename)
 	}
-}
-
-func (processor *TemplateProcessor) ProcessInit() {
-	workingDirectory, err := os.Getwd()
-	util.PanicIfError(err)
-
-	processor.processFiles("init", workingDirectory)
-}
-
-func (processor *TemplateProcessor) ProcessByType() {
-	targetPath := path.Join(processor.config.TypesPath, strcase.ToSnake(processor.config.TypeName))
-
-	processor.processFiles("type", targetPath)
 }
