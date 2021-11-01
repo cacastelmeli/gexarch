@@ -2,12 +2,16 @@ package main
 
 import (
 	"{{.ModulePath}}/cmd/app/config"
+	"{{.ModulePath}}/{{.TypesPath}}/shared/infrastructure/rest"
 	"{{.ModulePath}}/{{.TypesPath}}/shared/infrastructure/routers"
 )
 
 func main() {
 	conf := config.Get()
-	workerRouter := routers.GetWorkerRouter(conf)
+	workerRouter := rest.NewWorkerRouter(
+		conf.PrefixPath,
+		routers.GetSubRouters(conf)...,
+	)
 
 	// Load web app
 	if err := workerRouter.API().Run(); err != nil {

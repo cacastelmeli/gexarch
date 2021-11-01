@@ -2,7 +2,6 @@ package cli
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/aeroxmotion/gexarch/config"
 	"github.com/aeroxmotion/gexarch/processor"
@@ -20,14 +19,19 @@ func typeCommand() *cli.Command {
 }
 
 func typeCommandAction(ctx *cli.Context) error {
-	targetType := strings.TrimSpace(strcase.ToCamel(ctx.Args().Get(0)))
+	targetType := strcase.ToCamel(ctx.Args().Get(0))
 
 	if targetType == "" {
 		return errors.New("missing `type` name")
 	}
 
-	processor := processor.NewTemplateProcessor(config.GetProcessorConfigByType(targetType))
-	processor.ProcessByType()
+	conf := config.GetProcessorConfigByType(targetType)
+
+	tplProcessor := processor.NewTemplateProcessor(conf)
+	tplProcessor.ProcessByType()
+
+	codemodProcessor := processor.NewCodemodProcessor()
+	codemodProcessor.ProcessType(conf)
 
 	return nil
 }

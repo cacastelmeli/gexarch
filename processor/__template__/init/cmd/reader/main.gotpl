@@ -2,12 +2,16 @@ package main
 
 import (
 	"{{.ModulePath}}/cmd/app/config"
+	"{{.ModulePath}}/{{.TypesPath}}/shared/infrastructure/rest"
 	"{{.ModulePath}}/{{.TypesPath}}/shared/infrastructure/routers"
 )
 
 func main() {
 	conf := config.Get()
-	readerRouter := routers.GetReaderRouter(conf)
+	readerRouter := rest.NewReaderRouter(
+		conf.PrefixPath,
+		routers.GetSubRouters(conf)...,
+	)
 
 	// Load web app
 	if err := readerRouter.API().Run(); err != nil {

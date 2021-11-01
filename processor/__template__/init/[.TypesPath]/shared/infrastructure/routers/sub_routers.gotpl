@@ -1,0 +1,13 @@
+package routers
+
+import (
+	"{{.ModulePath}}/cmd/app/config"
+	"{{.ModulePath}}/{{.TypesPath}}/shared/infrastructure/rest"
+)
+
+func GetSubRouters(conf config.Config) []rest.SharedRouter {
+	subRouters := []rest.SharedRouter{
+	}
+
+	return subRouters
+}
