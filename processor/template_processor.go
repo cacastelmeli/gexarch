@@ -57,7 +57,8 @@ func (processor *TemplateProcessor) initTemplates() {
 
 	// Register custom pipelines
 	fileContentTemplate.Funcs(template.FuncMap{
-		"to_snake": strcase.ToSnake,
+		"to_snake":    strcase.ToSnake,
+		"to_lowcamel": strcase.ToLowerCamel,
 	})
 
 	// Define custom delimiters

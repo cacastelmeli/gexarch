@@ -3,6 +3,7 @@ package router
 import (
     "net/http"
 
+    "{{.ModulePath}}/cmd/app/config"
     "{{.ModulePath}}/{{.TypeName | to_snake}}/infrastructure/handler"
     "github.com/mercadolibre/fury_go-core/pkg/web"
 )
@@ -11,9 +12,9 @@ type {{.TypeName}}Router struct {
     *handler.{{.TypeName}}Handler
 }
 
-func New{{.TypeName}}Router() *{{.TypeName}}Router {
+func New{{.TypeName}}Router(conf config.Config) *{{.TypeName}}Router {
     return &{{.TypeName}}Router{
-        handler.New{{.TypeName}}Handler(),
+        handler.New{{.TypeName}}Handler(conf),
     }
 }
 

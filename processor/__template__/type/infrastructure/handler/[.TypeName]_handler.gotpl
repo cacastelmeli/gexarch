@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"{{.ModulePath}}/cmd/app/config"
 	"{{.ModulePath}}/{{.TypeName | to_snake}}/application"
 	"{{.ModulePath}}/{{.TypeName | to_snake}}/infrastructure/repository"
 )
@@ -9,14 +10,14 @@ type {{.TypeName}}Handler struct {
 	{{.UseCaseName}} *application.{{.UseCaseName}}
 }
 
-func New{{.TypeName}}Handler() *{{.TypeName}}Handler {
+func New{{.TypeName}}Handler(conf config.Config) *{{.TypeName}}Handler {
 	// Repository
 	repo := repository.New{{.TypeName}}RestclientRepository()
 
 	// Use-cases
-	{{.UseCaseName}} := application.New{{.UseCaseName}}(repo)
+	{{.UseCaseName | to_lowcamel}} := application.New{{.UseCaseName}}(repo)
 
 	return &{{.TypeName}}Handler{
-		{{.UseCaseName}}: {{.UseCaseName}},
+		{{.UseCaseName}}: {{.UseCaseName | to_lowcamel}},
 	}
 }
