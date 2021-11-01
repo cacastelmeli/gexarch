@@ -1,4 +1,4 @@
-package cli
+package cmd
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func initCommand() *cli.Command {
+func InitCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "init",
 		Aliases: []string{"i"},

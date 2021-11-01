@@ -1,4 +1,4 @@
-package cli
+package cmd
 
 import (
 	"errors"
@@ -22,7 +22,7 @@ const (
 	subRouterPath      = "%s/%s/infrastructure/router"
 )
 
-func typeCommand() *cli.Command {
+func TypeCommand() *cli.Command {
 	return &cli.Command{
 		Name:    "type",
 		Aliases: []string{"t"},

@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 
+	"github.com/aeroxmotion/gexarch/cli/cmd"
 	"github.com/urfave/cli/v2"
 )
 
@@ -11,8 +12,8 @@ func Start() {
 		Name:  "gexarch",
 		Usage: "Generate on-demand scaffolding following the ports & adapters architecture",
 		Commands: []*cli.Command{
-			typeCommand(),
-			initCommand(),
+			cmd.TypeCommand(),
+			cmd.InitCommand(),
 		},
 	}
 
