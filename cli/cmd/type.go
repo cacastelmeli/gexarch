@@ -39,24 +39,24 @@ func typeCommandAction(ctx *cli.Context) error {
 	}
 
 	conf := config.GetProcessorConfigByType(targetType)
+	templateProcessor, codemodProcessor := processor.NewTemplateProcessor(conf), processor.NewCodemodProcessor(conf)
 
-	processor.Process(conf, func(templateProcessor *processor.TemplateProcessor, codemodProcessor *processor.CodemodProcessor) {
-		targetPath := path.Join(conf.TypesPath, strcase.ToSnake(conf.TypeName))
-		templateProcessor.ProcessTemplate("type", targetPath)
-
-		codemodProcessor.ProcessFile(fmt.Sprintf(subRoutersFilename, conf.TypesPath), addRouterInstance)
-	})
+	templateProcessor.ProcessTemplate(
+		"type",
+		path.Join(conf.TypesPath, strcase.ToSnake(conf.TypeName)),
+	)
+	codemodProcessor.ProcessFile(fmt.Sprintf(subRoutersFilename, conf.TypesPath), addRouterInstance)
 
 	return nil
 }
 
-func addRouterInstance(fileSet *token.FileSet, file *ast.File, conf *config.ProcessorConfig) ast.Node {
+func addRouterInstance(fileSet *token.FileSet, fileNode *ast.File, conf *config.ProcessorConfig) ast.Node {
 	// Add top-level named import
 	// Will compile into something like:
 	// import <TypeName>Router "<ModulePath>/<TypeName>/..."
 	astutil.AddNamedImport(
 		fileSet,
-		file,
+		fileNode,
 		fmt.Sprintf("%sRouter", strcase.ToLowerCamel(conf.TypeName)),
 		fmt.Sprintf(subRouterPath, conf.ModulePath, strcase.ToSnake(conf.TypeName)),
 	)
@@ -99,7 +99,7 @@ func addRouterInstance(fileSet *token.FileSet, file *ast.File, conf *config.Proc
 		return false
 	}
 
-	return astutil.Apply(file, func(c *astutil.Cursor) bool {
+	return astutil.Apply(fileNode, func(c *astutil.Cursor) bool {
 		return true
 	}, postTransform)
 }

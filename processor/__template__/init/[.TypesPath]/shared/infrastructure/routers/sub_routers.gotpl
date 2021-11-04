@@ -6,8 +6,5 @@ import (
 )
 
 func GetSubRouters(conf config.Config) []rest.SharedRouter {
-	subRouters := []rest.SharedRouter{
-	}
-
-	return subRouters
+	return []rest.SharedRouter{}
 }

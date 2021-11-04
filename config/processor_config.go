@@ -19,7 +19,7 @@ type ProcessorConfig struct {
 
 func GetProcessorConfigByType(Type string) *ProcessorConfig {
 	modFile := util.ParseModfile()
-	cliConfig := GetCliConfig()
+	cliConfig := GetCliConfigFromFile()
 
 	return &ProcessorConfig{
 		CliConfig:      cliConfig,

@@ -2,8 +2,8 @@ package processor
 
 import (
 	"go/ast"
+	"go/format"
 	"go/parser"
-	"go/printer"
 	"go/token"
 	"os"
 
@@ -11,7 +11,12 @@ import (
 	"github.com/aeroxmotion/gexarch/util"
 )
 
-type TransformFunc func(fileSet *token.FileSet, file *ast.File, conf *config.ProcessorConfig) ast.Node
+const (
+	// Skip object resolution for fast path
+	optimizedParserMode parser.Mode = parser.ParseComments | parser.SkipObjectResolution
+)
+
+type TransformFunc func(fileSet *token.FileSet, fileNode *ast.File, conf *config.ProcessorConfig) ast.Node
 
 type CodemodProcessor struct {
 	fileSet *token.FileSet
@@ -27,19 +32,17 @@ func NewCodemodProcessor(conf *config.ProcessorConfig) *CodemodProcessor {
 
 func (processor *CodemodProcessor) ProcessFile(filename string, transformFunc TransformFunc) {
 	// Parse given `filename` into an AST
-	// TODO: We can optimize parsing by passing a bit flag (IDK)
-	node, err := parser.ParseFile(processor.fileSet, filename, nil, parser.ParseComments)
+	fileNode, err := parser.ParseFile(processor.fileSet, filename, nil, optimizedParserMode)
 	util.PanicIfError(err)
 
-	f, err := os.Create(filename)
+	file, err := os.Create(filename)
 	util.PanicIfError(err)
-	defer f.Close()
+	defer file.Close()
 
-	util.PanicIfError(
-		printer.Fprint(
-			f,
-			processor.fileSet,
-			transformFunc(processor.fileSet, node, processor.config),
-		),
+	err = format.Node(
+		file,
+		processor.fileSet,
+		transformFunc(processor.fileSet, fileNode, processor.config),
 	)
+	util.PanicIfError(err)
 }

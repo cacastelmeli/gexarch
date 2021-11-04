@@ -33,12 +33,11 @@ func initCommandAction(ctx *cli.Context) error {
 		ModulePath: util.ParseModfile().Module.Mod.Path,
 	}
 
-	processor.Process(conf, func(templateProcessor *processor.TemplateProcessor, codemodProcessor *processor.CodemodProcessor) {
-		workingDirectory, err := os.Getwd()
-		util.PanicIfError(err)
+	workingDirectory, err := os.Getwd()
+	util.PanicIfError(err)
 
-		templateProcessor.ProcessTemplate("init", workingDirectory)
-	})
+	templateProcessor := processor.NewTemplateProcessor(conf)
+	templateProcessor.ProcessTemplate("init", workingDirectory)
 
 	return nil
 }

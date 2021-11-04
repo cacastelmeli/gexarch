@@ -13,7 +13,7 @@ type CliConfig struct {
 	TypesPath string `yaml:"types_path"`
 }
 
-func GetCliConfig() *CliConfig {
+func GetCliConfigFromFile() *CliConfig {
 	cliConfig := CliConfig{}
 
 	configBytes, err := ioutil.ReadFile(CONFIG_FILENAME)
